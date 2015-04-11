@@ -1,0 +1,43 @@
+language: haskell
+ghc:
+  - 7.6
+  - 7.8
+    
+before_install:
+ - export PATH=$HOME/.cabal/bin:$PATH
+ - travis_retry cabal update
+
+# Install hlint
+ - travis_retry sudo apt-get -q -y install hlint
+
+# Install hpc-coveralls
+ - travis_retry cabal sandbox init
+ - cabal install hpc-coveralls -j --bindir=$HOME/.cabal/bin/ --constraint='aeson >= 0.7'
+ - cabal sandbox delete
+
+install:
+ - cabal --version
+ - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
+ - travis_retry cabal install --only-dependencies --enable-tests --enable-benchmarks -j
+
+script:
+ - hlint src --ignore="Parse error"
+ - cabal configure --enable-tests --enable-benchmarks --enable-library-coverage
+ - cabal build -j
+ - run-cabal-test --cabal-name=cabal --show-details=always
+ - cabal check
+ - cabal sdist
+ 
+# The following scriptlet checks that the resulting source distribution can be built & installed
+ - export SRC_TGZ=$(cabal info . | awk '{print $2 ".tar.gz";exit}') ;
+   cd dist/;
+   if [ -f "$SRC_TGZ" ]; then
+      cabal install --force-reinstalls "$SRC_TGZ";
+   else
+      echo "expected '$SRC_TGZ' not found";
+      exit 1;
+   fi ;
+   cd ../
+
+after_script:
+ - hpc-coveralls test-suite --exclude-dir=test --display-report
