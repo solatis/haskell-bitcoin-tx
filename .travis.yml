@@ -1,14 +1,31 @@
-language: haskell
-ghc:
-  - 7.6
-  - 7.8
+language: c
+env:
+ - CABALVER=1.22 GHCVER=7.8.4
+ - CABALVER=1.22 GHCVER=7.10.1
+ - CABALVER=1.22 GHCVER=head
+
+matrix:
+  allow_failures:
+   - env: CABALVER=1.22 GHCVER=7.10.1
+   - env: CABALVER=1.22 GHCVER=head
     
 before_install:
- - export PATH=$HOME/.cabal/bin:$PATH
+# Installing cabal and ghc
+ - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
+ - travis_retry sudo apt-get update
+ - travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER # see note about happy/alex
+ - export PATH=$HOME/.cabal/bin:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - travis_retry cabal update
 
-# Install hlint
- - travis_retry sudo apt-get -q -y install hlint
+ - |
+   if [ $GHCVER = "head" ] || [ ${GHCVER%.*} = "7.8" ] || [ ${GHCVER%.*} = "7.10" ]; then
+     travis_retry sudo apt-get install happy-1.19.4 alex-3.1.3
+     export PATH=/opt/alex/3.1.3/bin:/opt/happy/1.19.4/bin:$PATH
+   else
+     travis_retry sudo apt-get install happy alex
+   fi
+
+ - cabal install hlint 
 
 # Install hpc-coveralls
  - travis_retry cabal sandbox init
