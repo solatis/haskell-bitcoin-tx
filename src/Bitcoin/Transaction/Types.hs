@@ -11,6 +11,7 @@ import Data.Word ( Word32
 
 import qualified Data.ByteString as BS
 
+import Data.Bits (shiftL, shiftR)
 import Data.Binary (Binary, get, put)
 
 import Data.Binary.Get ( getByteString
@@ -65,22 +66,23 @@ data TxnOutputType = TxnPubKey     -- ^ JSON of "pubkey" received.
     deriving ( Show, Read, Ord, Eq )
 
 
-data TransactionHash = TransactionHash [Word64]
+data TransactionHash = TransactionHash Integer
     deriving ( Show, Read, Eq )
 
 instance Binary TransactionHash where
     get = do
-        a <- getWord64be
-        b <- getWord64be
-        c <- getWord64be
-        d <- getWord64be
-        return $ TransactionHash [a, b, c, d]
+      a <- fromIntegral <$> getWord64be
+      b <- fromIntegral <$> getWord64be
+      c <- fromIntegral <$> getWord64be
+      d <- fromIntegral <$> getWord64be
 
-    put (TransactionHash [a, b, c, d]) = do
-        putWord64be a
-        putWord64be b
-        putWord64be c
-        putWord64be d
+      return $ TransactionHash ((a `shiftL` 192) + (b `shiftL` 128) + (c `shiftL` 64) + d)
+
+    put (TransactionHash i) = do
+      putWord64be $ fromIntegral (i `shiftR` 192)
+      putWord64be $ fromIntegral (i `shiftR` 128)
+      putWord64be $ fromIntegral (i `shiftR` 64)
+      putWord64be $ fromIntegral i
 
 -- | A script signature.
 data ScriptSig = ScriptSig {
