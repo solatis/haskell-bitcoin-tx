@@ -1,12 +1,12 @@
 name: bitcoin-tx
 category: Network, Finance
-version: 0.0.1
+version: 0.9.0
 license: MIT
 license-file: LICENSE
 copyright: (c) 2015 Leon Mergen
 author: Leon Mergen
 maintainer: leon@solatis.com
-homepage: http://github.com/solatis/haskell-bitcoin-tx
+homepage: http://www.leonmergen.com/opensource.html
 bug-reports: http://github.com/solatis/haskell-bitcoin-tx/issues
 stability: experimental
 synopsis: Utility functions for manipulating bitcoin transactions
