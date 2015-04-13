@@ -1,11 +1,11 @@
 module Bitcoin.TransactionSpec where
 
+import           Bitcoin.Script (Script (..))
+import           Bitcoin.Transaction        (decode, encode)
+import           Bitcoin.Transaction.Types
 import qualified Data.ByteString.Lazy.Char8 as BSL8 (pack)
-import Bitcoin.Transaction ( decode
-                           , encode )
-import Text.Groom (groom)
 
-import Test.Hspec
+import           Test.Hspec
 
 spec :: Spec
 spec = do
@@ -18,5 +18,6 @@ spec = do
     it "succesfully parses a transaction into a meaningful object" $ do
       let decoded = decode hex
 
-      putStrLn ("decoded = " ++ groom decoded)
-      True `shouldBe` True
+      case decoded of
+       (Transaction 1 [(TransactionIn _ _ 4294967295), (TransactionIn _ _ 4294967295)] [(TransactionOut 7999990000 (Script _)), (TransactionOut 1000000000 (Script _))] 0) -> return ()
+       _                               -> expectationFailure ("Result does not match expected: " ++ show decoded)

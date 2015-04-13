@@ -29,9 +29,6 @@ library
                        Bitcoin.Transaction.Types
 
   build-depends:       base                     >= 4.3          && < 5
-                     , text
-                     , deepseq
-                     , aeson
                      , bytestring
                      , base16-bytestring
                      , binary
@@ -53,9 +50,9 @@ test-suite test-suite
                      , hspec
 
                      , bytestring
-                     , groom 
 
                      , bitcoin-tx
+                     , bitcoin-script
 
 source-repository head
   type: git
