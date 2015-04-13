@@ -5,14 +5,14 @@ module Bitcoin.Transaction.Types where
 import Control.Applicative ((<$>),(<*>))
 import Control.Monad (liftM2, replicateM, forM_)
 
-import qualified Data.Text as T
 import Data.Word ( Word32
                  , Word64 )
 
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
 
 import Data.Bits (shiftL, shiftR)
-import Data.Binary (Binary, get, put)
+import Data.Binary ( Binary, get, put, encode, decode )
 
 import Data.Binary.Get ( getByteString
                        , getWord8
@@ -28,9 +28,7 @@ import Data.Binary.Put ( putByteString
                        , putWord64le
                        , putWord64be )
 
-type HexString     = T.Text
-type TransactionId = HexString
-type Address       = HexString
+import qualified Bitcoin.Script as Btc ( Script )
 
 -- | Data type representing a variable length integer. The 'VarInt' type
 -- usually precedes an array or a string that can vary in length.
@@ -84,12 +82,6 @@ instance Binary TransactionHash where
       putWord64be $ fromIntegral (i `shiftR` 64)
       putWord64be $ fromIntegral i
 
--- | A script signature.
-data ScriptSig = ScriptSig {
-     sigAsm :: HexString,
-     sigHex :: HexString
-   } deriving (Show, Read, Ord, Eq)
-
 -- | The OutPoint is used inside a transaction input to reference the previous
 -- transaction output that it is spending.
 data OutPoint = OutPoint {
@@ -108,7 +100,6 @@ instance Binary OutPoint where
 
   put (OutPoint h i) = put h >> putWord32le i
 
-
 -- | Data type representing a transaction input.
 data TransactionIn =  TransactionIn {
   -- | Reference the previous transaction output (hash + position)
@@ -116,7 +107,7 @@ data TransactionIn =  TransactionIn {
 
   -- | Script providing the requirements of the previous transaction
   -- output to spend those coins.
-  scriptInput  :: BS.ByteString,
+  scriptInput  :: Btc.Script,
 
   -- | Transaction version as defined by the sender of the
   -- transaction. The intended use is for replacing transactions with
@@ -126,16 +117,23 @@ data TransactionIn =  TransactionIn {
   } deriving (Eq, Show, Read)
 
 instance Binary TransactionIn where
-    get =
-        TransactionIn <$> get <*> (readBS =<< get) <*> getWord32le
-      where
-        readBS (VarInt len) = getByteString $ fromIntegral len
+    get = do
+      o <- get
+      (VarInt len) <- get
+      scriptBs <- getByteString (fromIntegral len)
+      s <- getWord32le
 
-    put (TransactionIn o s q) = do
-        put o
-        put $ VarInt $ fromIntegral $ BS.length s
-        putByteString s
-        putWord32le q
+      let i = decode $ BSL.fromStrict scriptBs
+
+      return $ TransactionIn o i s
+
+    put (TransactionIn o i s) = do
+      let scriptBs = BSL.toStrict $ encode i
+
+      put o
+      put $ VarInt $ fromIntegral $ BS.length scriptBs
+      putByteString scriptBs
+      putWord32le s
 
 
 -- | Data type representing a transaction output.
@@ -144,19 +142,26 @@ data TransactionOut = TransactionOut {
   outValue     :: Word64,
 
   -- | Script specifying the conditions to spend this output.
-  scriptOutput :: BS.ByteString
+  scriptOutput :: Btc.Script
+
   } deriving (Eq, Show, Read)
 
 instance Binary TransactionOut where
     get = do
         val <- getWord64le
         (VarInt len) <- get
-        TransactionOut val <$> getByteString (fromIntegral len)
+
+        scriptBs <- getByteString (fromIntegral len)
+        let s = decode $ BSL.fromStrict scriptBs
+
+        return $ TransactionOut val s
 
     put (TransactionOut o s) = do
-        putWord64le o
-        put $ VarInt $ fromIntegral $ BS.length s
-        putByteString s
+      let scriptBs = BSL.toStrict $ encode s
+
+      putWord64le o
+      put $ VarInt $ fromIntegral $ BS.length scriptBs
+      putByteString scriptBs
 
 -- | Data type representing a bitcoin transaction
 data Transaction = Transaction {
