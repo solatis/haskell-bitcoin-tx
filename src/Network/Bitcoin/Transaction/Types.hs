@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances  #-}
 
-module Bitcoin.Transaction.Types where
+module Network.Bitcoin.Transaction.Types where
 
 import Control.Applicative ((<$>),(<*>))
 import Control.Monad (liftM2, replicateM, forM_)
@@ -28,7 +28,7 @@ import Data.Binary.Put ( putByteString
                        , putWord64le
                        , putWord64be )
 
-import qualified Bitcoin.Script as Btc ( Script (..) )
+import qualified Network.Bitcoin.Script as Btc ( Script (..) )
 
 -- | Data type representing a variable length integer. The 'VarInt' type
 -- usually precedes an array or a string that can vary in length.
