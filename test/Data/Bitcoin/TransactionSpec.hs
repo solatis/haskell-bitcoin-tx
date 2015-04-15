@@ -1,9 +1,7 @@
 module Data.Bitcoin.TransactionSpec where
 
 import           Data.Bitcoin.Script            (Script (..))
-import           Data.Bitcoin.Transaction       ( decode
-                                                , encode )
-import           Data.Bitcoin.Transaction.Types
+import           Data.Bitcoin.Transaction
 import qualified Data.ByteString.Lazy.Char8     as BSL8 (pack)
 
 import           Test.Hspec

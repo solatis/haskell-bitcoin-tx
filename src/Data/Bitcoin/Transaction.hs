@@ -1,4 +1,8 @@
-module Data.Bitcoin.Transaction where
+module Data.Bitcoin.Transaction ( decode
+                                , encode
+                                , Transaction (..)
+                                , TransactionIn (..)
+                                , TransactionOut (..) )where
 
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Base16.Lazy as BS16L
