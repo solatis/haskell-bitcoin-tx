@@ -1,9 +1,10 @@
-module Network.Bitcoin.TransactionSpec where
+module Data.Bitcoin.TransactionSpec where
 
-import           Network.Bitcoin.Script (Script (..))
-import           Network.Bitcoin.Transaction        (decode, encode)
-import           Network.Bitcoin.Transaction.Types
-import qualified Data.ByteString.Lazy.Char8 as BSL8 (pack)
+import           Data.Bitcoin.Script            (Script (..))
+import           Data.Bitcoin.Transaction       ( decode
+                                                , encode )
+import           Data.Bitcoin.Transaction.Types
+import qualified Data.ByteString.Lazy.Char8     as BSL8 (pack)
 
 import           Test.Hspec
 

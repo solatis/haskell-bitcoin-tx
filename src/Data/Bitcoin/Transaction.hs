@@ -1,4 +1,4 @@
-module Network.Bitcoin.Transaction where
+module Data.Bitcoin.Transaction where
 
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Base16.Lazy as BS16L
@@ -6,7 +6,7 @@ import qualified Data.ByteString.Base16.Lazy as BS16L
 import qualified Data.Binary     as B ( decode
                                       , encode )
 
-import Network.Bitcoin.Transaction.Types
+import Data.Bitcoin.Transaction.Types
 
 -- | Decodes a hex representation of a transaction into a 'Transaction' object.
 decode :: BSL.ByteString -> Transaction
