@@ -22,3 +22,11 @@ spec = do
       case decoded of
        (Transaction 1 [(TransactionIn _ _ 4294967295), (TransactionIn _ _ 4294967295)] [(TransactionOut 7999990000 (Script _)), (TransactionOut 1000000000 (Script _))] 0) -> return ()
        _                               -> expectationFailure ("Result does not match expected: " ++ show decoded)
+
+  describe "when generating a transaction id" $ do
+    -- This test case is taken from the information provided at:
+    --   http://bitcoin.stackexchange.com/questions/32765/how-do-i-calculate-the-txid-of-this-raw-transaction
+    let hex = HS.hexString $ BS8.pack "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0704ffff001d014dffffffff0100f2052a01000000434104e70a02f5af48a1989bf630d92523c9d14c45c75f7d1b998e962bff6ff9995fc5bdb44f1793b37495d80324acba7c8f537caaf8432b8d47987313060cc82d8a93ac00000000"
+
+    it "succesfully calculates a transaction id" $ do
+      (transactionId . decode) hex `shouldBe` (HS.hexString $ BS8.pack "2d05f0c9c3e1c226e63b5fac240137687544cf631cd616fd34fd188fc9020866")

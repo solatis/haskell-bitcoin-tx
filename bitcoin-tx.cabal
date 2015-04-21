@@ -34,6 +34,8 @@ library
                      , binary
                      , hexstring
 
+                     , cryptohash
+
                      , bitcoin-script
 
 test-suite test-suite

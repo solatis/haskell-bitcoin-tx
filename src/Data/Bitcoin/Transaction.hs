@@ -1,20 +1,36 @@
 module Data.Bitcoin.Transaction ( decode
                                 , encode
+                                , transactionId
                                 , Transaction (..)
                                 , TransactionIn (..)
                                 , TransactionOut (..)) where
 
-import qualified Data.HexString as HS
+import qualified Data.Binary                    as B (encode)
 
-import Data.Bitcoin.Transaction.Types
+import qualified Data.ByteString                as BS (reverse)
+import qualified Data.ByteString.Lazy           as BSL (toStrict)
+
+import qualified Crypto.Hash.SHA256             as Sha256
+import qualified Data.HexString                 as HS
+
+import           Data.Bitcoin.Transaction.Types
 
 -- | Decodes a hex representation of a transaction into a 'Transaction' object.
-decode :: HS.HexString -> Transaction
-decode = HS.fromHex
+decode :: HS.HexString -- ^ The hexadecimal representation of the transaction
+       -> Transaction  -- ^ The decoded 'Transaction' object
+decode = HS.toBinary
 
 -- | Encodes a 'Transaction' object into a hex representation.
-encode :: Transaction -> HS.HexString
-encode = HS.toHex
+encode :: Transaction  -- ^ The 'Transaction' we would like to encode to hex
+       -> HS.HexString -- ^ The hexadecimal representation of the transaction
+encode = HS.fromBinary
 
-calculateTransactionId :: Transaction -> HS.HexString
-calculateTransactionId tx = undefined
+-- | Calculates the transaction id of a 'Transaction' as a 'HS.HexString' so it
+--   can be used in RPC interfaces.
+transactionId :: Transaction -> HS.HexString
+transactionId =
+      -- Bitcoin uses a "double sha256", also known as sha256d as its hash algo
+  let sha256d = Sha256.hash . Sha256.hash
+      bytes   = BSL.toStrict . B.encode
+
+  in HS.fromBytes . BS.reverse . sha256d . bytes
