@@ -63,7 +63,6 @@ data TxnOutputType = TxnPubKey     -- ^ JSON of "pubkey" received.
                    | TxnMultisig   -- ^ JSON of "multisig" received.
     deriving ( Show, Read, Ord, Eq )
 
-
 data TransactionHash = TransactionHash Integer
     deriving ( Show, Read, Eq )
 

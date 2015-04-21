@@ -2,22 +2,19 @@ module Data.Bitcoin.Transaction ( decode
                                 , encode
                                 , Transaction (..)
                                 , TransactionIn (..)
-                                , TransactionOut (..) )where
+                                , TransactionOut (..)) where
 
-import qualified Data.ByteString.Lazy as BSL
-import qualified Data.ByteString.Base16.Lazy as BS16L
-
-import qualified Data.Binary     as B ( decode
-                                      , encode )
+import qualified Data.HexString as HS
 
 import Data.Bitcoin.Transaction.Types
 
 -- | Decodes a hex representation of a transaction into a 'Transaction' object.
-decode :: BSL.ByteString -> Transaction
-decode =
-  B.decode . fst . BS16L.decode
+decode :: HS.HexString -> Transaction
+decode = HS.fromHex
 
 -- | Encodes a 'Transaction' object into a hex representation.
-encode :: Transaction -> BSL.ByteString
-encode =
-  BS16L.encode . B.encode
+encode :: Transaction -> HS.HexString
+encode = HS.toHex
+
+calculateTransactionId :: Transaction -> HS.HexString
+calculateTransactionId tx = undefined
