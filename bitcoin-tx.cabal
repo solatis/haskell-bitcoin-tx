@@ -36,6 +36,7 @@ library
 
                      , cryptohash
 
+                     , bitcoin-types
                      , bitcoin-script
 
 test-suite test-suite

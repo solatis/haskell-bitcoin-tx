@@ -2,8 +2,12 @@
 
 module Data.Bitcoin.Transaction.Types where
 
-import Control.Applicative ((<$>),(<*>))
-import Control.Monad (liftM2, replicateM, forM_)
+import Control.Applicative ( (<$>)
+                           , (<*>) )
+import Control.Monad ( liftM2
+                     , replicateM
+                     , forM_
+                     , unless )
 
 import Data.Word ( Word32
                  , Word64 )
@@ -15,47 +19,17 @@ import Data.Bits (shiftL, shiftR)
 import Data.Binary ( Binary, get, put, encode, decode )
 
 import Data.Binary.Get ( getByteString
-                       , getWord8
-                       , getWord16le
                        , getWord32le
                        , getWord64le
                        , getWord64be )
 
 import Data.Binary.Put ( putByteString
-                       , putWord8
-                       , putWord16le
                        , putWord32le
                        , putWord64le
                        , putWord64be )
 
+import Data.Bitcoin.Types ( VarInt (..) )
 import qualified Data.Bitcoin.Script as Btc ( Script (..) )
-
--- | Data type representing a variable length integer. The 'VarInt' type
--- usually precedes an array or a string that can vary in length.
-newtype VarInt = VarInt { getVarInt :: Word64 }
-    deriving (Eq, Show, Read)
-
-instance Binary VarInt where
-
-    get = VarInt <$> ( getWord8 >>= go )
-      where
-        go 0xff = getWord64le
-        go 0xfe = fromIntegral <$> getWord32le
-        go 0xfd = fromIntegral <$> getWord16le
-        go x    = fromIntegral <$> return x
-
-    put (VarInt x)
-        | x < 0xfd =
-            putWord8 $ fromIntegral x
-        | x <= 0xffff = do
-            putWord8 0xfd
-            putWord16le $ fromIntegral x
-        | x <= 0xffffffff = do
-            putWord8 0xfe
-            putWord32le $ fromIntegral x
-        | otherwise = do
-            putWord8 0xff
-            putWord64le x
 
 data TxnOutputType = TxnPubKey     -- ^ JSON of "pubkey" received.
                    | TxnPubKeyHash -- ^ JSON of "pubkeyhash" received.
@@ -193,3 +167,65 @@ instance Binary Transaction where
         put $ VarInt $ fromIntegral $ length os
         forM_ os put
         putWord32le l
+
+
+-- | Data type representing the coinbase transaction of a 'Block'. Coinbase
+--   transactions are special types of transactions which are created by miners
+--   when they find a new block. Coinbase transactions have no inputs. They have
+--   outputs sending the newly generated bitcoins together with all the block's
+--   fees to a bitcoin address (usually the miners address). Data can be embedded
+--   in a Coinbase transaction which can be chosen by the miner of a block. This
+--   data also typically contains some randomness which is used, together with
+--   the nonce, to find a partial hash collision on the block's hash.
+data Coinbase = Coinbase {
+
+  -- | Transaction data format version.
+  cbVersion    :: Word32,
+
+  -- | Previous outpoint. This is ignored for
+  --   coinbase transactions but preserved for computing
+  --   the correct txid.
+  cbPrevOutput :: OutPoint,
+
+  -- | Data embedded inside the coinbase transaction.
+  cbData       :: BS.ByteString,
+
+  -- | Transaction sequence number. This is ignored for
+  --   coinbase transactions but preserved for computing
+  --   the correct txid.
+  cbInSequence :: Word32,
+
+  -- | List of transaction outputs.
+  cbOut        :: [TransactionOut],
+
+  -- | The block number of timestamp at which this
+  --   transaction is locked.
+  cbLockTime   :: Word32
+
+  } deriving (Eq, Show, Read)
+
+instance Binary Coinbase where
+
+    get = do
+        v <- getWord32le
+        (VarInt len) <- get
+        unless (len == 1) $ fail "Coinbase get: Input size is not 1"
+        op <- get
+        (VarInt cbLen) <- get
+        cb <- getByteString (fromIntegral cbLen)
+        sq <- getWord32le
+        (VarInt oLen) <- get
+        os <- replicateM (fromIntegral oLen) get
+        lt <- getWord32le
+        return $ Coinbase v op cb sq os lt
+
+    put (Coinbase v op cb sq os lt) = do
+        putWord32le v
+        put $ VarInt 1
+        put op
+        put $ VarInt $ fromIntegral $ BS.length cb
+        putByteString cb
+        putWord32le sq
+        put $ VarInt $ fromIntegral $ length os
+        forM_ os put
+        putWord32le lt
