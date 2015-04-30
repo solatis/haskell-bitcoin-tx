@@ -63,7 +63,7 @@ data OutPoint = OutPoint {
 
   -- | The position of the specific output in the transaction.
   -- The first output position is 0.
-  outPointIndex :: !Word32
+  outPointIndex :: Word32
   } deriving (Read, Show, Eq)
 
 instance Binary OutPoint where
