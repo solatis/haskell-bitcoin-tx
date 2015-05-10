@@ -1,35 +1,28 @@
-{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Data.Bitcoin.Transaction.Types where
 
-import Control.Applicative ( (<$>)
-                           , (<*>) )
-import Control.Monad ( liftM2
-                     , replicateM
-                     , forM_
-                     , unless )
+import           Control.Applicative  ((<$>), (<*>))
+import           Control.Lens.TH      (makeLenses)
+import           Control.Monad        (forM_, liftM2, replicateM, unless)
 
-import Data.Word ( Word32
-                 , Word64 )
+import           Data.Word            (Word32, Word64)
 
-import qualified Data.ByteString as BS
+import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BSL
 
-import Data.Bits (shiftL, shiftR)
-import Data.Binary ( Binary, get, put, encode, decode )
+import           Data.Binary          (Binary, decode, encode, get, put)
+import           Data.Bits            (shiftL, shiftR)
 
-import Data.Binary.Get ( getByteString
-                       , getWord32le
-                       , getWord64le
-                       , getWord64be )
+import           Data.Binary.Get      (getByteString, getWord32le, getWord64be,
+                                       getWord64le)
 
-import Data.Binary.Put ( putByteString
-                       , putWord32le
-                       , putWord64le
-                       , putWord64be )
+import           Data.Binary.Put      (putByteString, putWord32le, putWord64be,
+                                       putWord64le)
 
-import Data.Bitcoin.Types ( VarInt (..) )
-import qualified Data.Bitcoin.Script as Btc ( Script (..) )
+import qualified Data.Bitcoin.Script  as Btc (Script (..))
+import           Data.Bitcoin.Types   (VarInt (..))
 
 data TxnOutputType = TxnPubKey     -- ^ JSON of "pubkey" received.
                    | TxnPubKeyHash -- ^ JSON of "pubkeyhash" received.
@@ -59,12 +52,14 @@ instance Binary TransactionHash where
 -- transaction output that it is spending.
 data OutPoint = OutPoint {
   -- | The hash of the referenced transaction.
-  outPointHash  :: TransactionHash,
+  _outPointHash  :: TransactionHash,
 
   -- | The position of the specific output in the transaction.
-  -- The first output position is 0.
-  outPointIndex :: Word32
+  --   The first output position is 0.
+  _outPointIndex :: Word32
   } deriving (Read, Show, Eq)
+
+makeLenses ''OutPoint
 
 instance Binary OutPoint where
   get = do
@@ -76,18 +71,20 @@ instance Binary OutPoint where
 -- | Data type representing a transaction input.
 data TransactionIn =  TransactionIn {
   -- | Reference the previous transaction output (hash + position)
-  prevOutput   :: OutPoint,
+  _prevOutput   :: OutPoint,
 
   -- | Script providing the requirements of the previous transaction
-  -- output to spend those coins.
-  scriptInput  :: Btc.Script,
+  --   output to spend those coins.
+  _scriptInput  :: Btc.Script,
 
   -- | Transaction version as defined by the sender of the
-  -- transaction. The intended use is for replacing transactions with
-  -- new information before the transaction is included in a block.
-  txInSequence :: Word32
+  --   transaction. The intended use is for replacing transactions with
+  --   new information before the transaction is included in a block.
+  _txInSequence :: Word32
 
   } deriving (Eq, Show, Read)
+
+makeLenses ''TransactionIn
 
 instance Binary TransactionIn where
     get = do
@@ -112,12 +109,14 @@ instance Binary TransactionIn where
 -- | Data type representing a transaction output.
 data TransactionOut = TransactionOut {
   -- | Transaction output value.
-  outValue     :: Word64,
+  _outValue     :: Word64,
 
   -- | Script specifying the conditions to spend this output.
-  scriptOutput :: Btc.Script
+  _scriptOutput :: Btc.Script
 
   } deriving (Eq, Show, Read)
+
+makeLenses ''TransactionOut
 
 instance Binary TransactionOut where
     get = do
@@ -139,18 +138,20 @@ instance Binary TransactionOut where
 -- | Data type representing a bitcoin transaction
 data Transaction = Transaction {
   -- | Transaction data format version
-  txVersion  :: Word32,
+  _txVersion  :: Word32,
 
   -- | List of transaction inputs
-  txIn       :: [TransactionIn],
+  _txIn       :: [TransactionIn],
 
   -- | List of transaction outputs
-  txOut      :: [TransactionOut],
+  _txOut      :: [TransactionOut],
 
   -- | The block number of timestamp at which this transaction is locked
-  txLockTime :: Word32
+  _txLockTime :: Word32
 
   } deriving (Eq, Show, Read)
+
+makeLenses ''Transaction
 
 instance Binary Transaction where
     get = Transaction <$> getWord32le
@@ -180,29 +181,31 @@ instance Binary Transaction where
 data Coinbase = Coinbase {
 
   -- | Transaction data format version.
-  cbVersion    :: Word32,
+  _cbVersion    :: Word32,
 
   -- | Previous outpoint. This is ignored for
   --   coinbase transactions but preserved for computing
   --   the correct txid.
-  cbPrevOutput :: OutPoint,
+  _cbPrevOutput :: OutPoint,
 
   -- | Data embedded inside the coinbase transaction.
-  cbData       :: BS.ByteString,
+  _cbData       :: BS.ByteString,
 
   -- | Transaction sequence number. This is ignored for
   --   coinbase transactions but preserved for computing
   --   the correct txid.
-  cbInSequence :: Word32,
+  _cbInSequence :: Word32,
 
   -- | List of transaction outputs.
-  cbOut        :: [TransactionOut],
+  _cbOut        :: [TransactionOut],
 
   -- | The block number of timestamp at which this
   --   transaction is locked.
-  cbLockTime   :: Word32
+  _cbLockTime   :: Word32
 
   } deriving (Eq, Show, Read)
+
+makeLenses ''Coinbase
 
 instance Binary Coinbase where
 
