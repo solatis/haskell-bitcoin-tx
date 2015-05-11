@@ -1,10 +1,7 @@
 module Data.Bitcoin.Transaction ( decode
                                 , encode
                                 , transactionId
-                                , Transaction (..)
-                                , TransactionIn (..)
-                                , TransactionOut (..)
-                                , Coinbase ) where
+                                , module Data.Bitcoin.Transaction.Types ) where
 
 import qualified Data.Binary                    as B (encode)
 
