@@ -1,5 +1,5 @@
 { mkDerivation, base, binary, bitcoin-script, bitcoin-types
-, bytestring, cryptohash, hexstring, hspec, lens, stdenv
+, bytestring, cryptohash, hexstring, hspec, microlens-th, stdenv
 }:
 mkDerivation {
   pname = "bitcoin-tx";
@@ -7,7 +7,7 @@ mkDerivation {
   src = ./.;
   buildDepends = [
     base binary bitcoin-script bitcoin-types bytestring cryptohash
-    hexstring lens
+    hexstring microlens-th
   ];
   testDepends = [ base bitcoin-script bytestring hexstring hspec ];
   homepage = "http://www.leonmergen.com/opensource.html";

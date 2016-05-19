@@ -4,7 +4,7 @@
 module Data.Bitcoin.Transaction.Types where
 
 import           Control.Applicative  ((<$>), (<*>))
-import           Control.Lens.TH      (makeLenses)
+import           Lens.Micro.TH        (makeLenses)
 import           Control.Monad        (forM_, liftM2, replicateM, unless)
 
 import           Data.Word            (Word32, Word64)
