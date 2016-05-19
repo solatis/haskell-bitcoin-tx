@@ -33,7 +33,7 @@ library
                      , bytestring
                      , binary
                      , hexstring
-                     , lens
+                     , microlens-th
 
                      , cryptohash
 
